@@ -1,0 +1,244 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String          @id @default(uuid())
+  name          String
+  email         String          @unique
+  emailVerified Boolean         @default(false)
+  image         String?
+  role          String          @default("DONOR") // "DONOR" or "ADMIN"
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  contributions Contribution[]
+  auditLogs     AuditLog[]
+  paymentInfo     DonorPaymentInfo?
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  password              String?
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  createdAt             DateTime
+  updatedAt             DateTime
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+}
+
+model Category {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  slug      String     @unique
+  campaigns Campaign[]
+}
+
+model Borrower {
+  id                  String     @id @default(uuid())
+  fullName            String
+  phoneNumber         String
+  address             String
+  occupation          String
+  nidNumber           String
+  purposeOfLoan       String
+  loanAmountRequested Float
+  repaymentPlan       String
+  internalNotes       String?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  campaigns           Campaign[]
+}
+
+model Campaign {
+  id                        String           @id @default(uuid())
+  title                     String
+  slug                      String           @unique
+  shortDescription          String
+  fullStory                 String
+  loanAmountRequired        Float
+  raisedAmount              Float            @default(0)
+  disbursedAmount           Float            @default(0)
+  totalRepaid               Float            @default(0)
+  expectedRepaymentDuration String
+  coverImage                String
+  riskLevel                 String           @default("LOW") // "LOW", "MEDIUM", "HIGH"
+  status                    String           @default("DRAFT") // "DRAFT", "UNDER_VERIFICATION", "ACTIVE_FUNDING", "FULLY_FUNDED", "DISBURSED", "REPAYMENT_ACTIVE", "COMPLETED", "CLOSED"
+  verificationStatus        String           @default("PENDING")
+  identityVerified          Boolean          @default(false)
+  needVerified              Boolean          @default(false)
+  documentsVerified         Boolean          @default(false)
+  adminApproved             Boolean          @default(false)
+  expectedCompletionDate    DateTime?
+  createdAt                 DateTime         @default(now())
+  updatedAt                 DateTime         @updatedAt
+  categoryId                String
+  category                  Category         @relation(fields: [categoryId], references: [id])
+  borrowerId                String?
+  borrower                  Borrower?        @relation(fields: [borrowerId], references: [id])
+  contributions             Contribution[]
+  updates                   CampaignUpdate[]
+  repayments                Repayment[]
+  documents                 Document[]
+}
+
+model CampaignUpdate {
+  id         String   @id @default(uuid())
+  title      String
+  content    String
+  createdAt  DateTime @default(now())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+}
+
+model Contribution {
+  id              String        @id @default(uuid())
+  amount          Float
+  status          String        @default("PENDING") // "PENDING", "APPROVED", "REJECTED", "CANCELLED"
+  rejectionReason String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  campaignId      String
+  campaign        Campaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  donorId         String
+  donor           User          @relation(fields: [donorId], references: [id], onDelete: Cascade)
+  paymentProof    PaymentProof?
+  receipt         Receipt?
+  repayments      Repayment[]   // ← ADD THIS LINE
+}
+
+model PaymentProof {
+  id             String       @id @default(uuid())
+  paymentMethod  String // "bkash", "nagad", "rocket", "bank_transfer"
+  transactionId  String
+  senderNumber   String
+  paymentDate    DateTime
+  slipUrl        String
+  createdAt      DateTime     @default(now())
+  contributionId String       @unique
+  contribution   Contribution @relation(fields: [contributionId], references: [id], onDelete: Cascade)
+}
+
+model Repayment {
+  id             String            @id @default(uuid())
+  amount         Float
+  repaymentDate  DateTime
+  notes          String?
+  createdAt      DateTime          @default(now())
+  campaignId     String
+  campaign       Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contributionId String?
+  contribution   Contribution?     @relation(fields: [contributionId], references: [id], onDelete: SetNull)
+  donorId        String?
+  releasedBy     String?
+  receipt        RepaymentReceipt?
+}
+
+model DonorPaymentInfo {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bkashNumber   String?
+  nagadNumber   String?
+  rocketNumber  String?
+  bankName      String?
+  accountName   String?
+  accountNumber String?
+  branchName    String?
+  routingNumber String?
+  updatedAt     DateTime @updatedAt
+}
+model RepaymentReceipt {
+  id            String    @id @default(uuid())
+  receiptNumber String    @unique
+  issuedAt      DateTime  @default(now())
+  repaymentId   String    @unique
+  repayment     Repayment @relation(fields: [repaymentId], references: [id], onDelete: Cascade)
+}
+
+model Document {
+  id         String   @id @default(uuid())
+  name       String
+  fileUrl    String
+  fileType   String
+  createdAt  DateTime @default(now())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  userEmail String?
+  action    String
+  details   String
+  ipAddress String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model Settings {
+  id               String   @id @default("singleton")
+  bkashNumber      String?
+  nagadNumber      String?
+  rocketNumber     String?
+  bankName         String?
+  accountName      String?
+  accountNumber    String?
+  organizationName String   @default("Goodly Loan")
+  organizationLogo String?
+  contactEmail     String?
+  contactPhone     String?
+  updatedAt        DateTime @updatedAt
+}
+
+model Receipt {
+  id             String       @id @default(uuid())
+  receiptNumber  String       @unique
+  issuedAt       DateTime     @default(now())
+  contributionId String       @unique
+  contribution   Contribution @relation(fields: [contributionId], references: [id], onDelete: Cascade)
+}
