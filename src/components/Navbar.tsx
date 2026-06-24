@@ -12,12 +12,11 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isLoggedIn = !!session;
-  const isAdmin = session?.user?.role === "ADMIN";
+  const isAdmin = (session?.user as any)?.role === "ADMIN";
 
   const handleSignOut = async () => {
-    await signOut({
-      callbackURL: "/login",
-    });
+    await signOut();
+    window.location.href = "/login";
   };
 
   const navLinks = [
@@ -113,7 +112,7 @@ export default function Navbar() {
                   </div>
                   <div className="text-xs">
                     <p className="font-semibold text-slate-800 leading-tight">{session.user.name}</p>
-                    <p className="text-slate-400 capitalize">{session.user.role?.toLowerCase()}</p>
+                    <p className="text-slate-400 capitalize">{((session.user as any).role)?.toLowerCase()}</p>
                   </div>
                 </div>
                 <button

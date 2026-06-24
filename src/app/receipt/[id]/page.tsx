@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { getSettings } from "@/lib/actions/settings";
 import { Heart, Printer, ShieldCheck } from "lucide-react";
+import PrintButton from "@/components/PrintButton";
 
 interface PageProps {
   params: Promise<{
@@ -48,17 +49,7 @@ export default async function ReceiptPage({ params }: PageProps) {
         {/* Header bar controls (hidden on print) */}
         <div className="flex justify-between items-center border-b border-slate-100 pb-4 print:hidden">
           <span className="text-xs font-semibold text-slate-500">Official Donation Receipt</span>
-          <button
-            // Since this is a server page, we can trigger print via standard inline JS or a client wrapper.
-            // Let's use standard HTML inline click to trigger print easily!
-            // @ts-ignore
-            className="inline-flex items-center space-x-1 bg-green-600 hover:bg-green-700 text-white font-semibold px-4.5 py-2 rounded-lg text-xs transition cursor-pointer"
-            /* eslint-disable-next-line react/no-unknown-property */
-            onclick="window.print()"
-          >
-            <Printer className="h-4 w-4" />
-            <span>Print Receipt</span>
-          </button>
+          <PrintButton />
         </div>
 
         {/* Brand Header */}

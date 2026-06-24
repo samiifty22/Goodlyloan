@@ -24,7 +24,7 @@ function LoginContent() {
       const callbackUrl = searchParams.get("callbackUrl");
       if (callbackUrl) {
         router.push(callbackUrl);
-      } else if (session.user.role === "ADMIN") {
+      } else if ((session.user as any).role === "ADMIN") {
         router.push("/admin/dashboard");
       } else {
         router.push("/donor/dashboard");

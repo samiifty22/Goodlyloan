@@ -18,7 +18,7 @@ export async function getDonorProfile(userId: string) {
 
         let paymentInfo = null;
         try {
-            paymentInfo = await db.DonorPaymentInfo.findUnique({
+            paymentInfo = await db.donorPaymentInfo.findUnique({
                 where: { userId },
             });
         } catch (e) {
@@ -46,7 +46,7 @@ export async function upsertDonorPaymentInfo(
     }
 ) {
     try {
-        await db.DonorPaymentInfo.upsert({
+        await db.donorPaymentInfo.upsert({
             where: { userId },
             update: {
                 bkashNumber: data.bkashNumber ?? null,
@@ -98,7 +98,7 @@ export async function updateDonorName(userId: string, name: string) {
 
 export async function getDonorPaymentInfoForAdmin(donorId: string) {
     try {
-        return await db.DonorPaymentInfo.findUnique({
+        return await db.donorPaymentInfo.findUnique({
             where: { userId: donorId },
         });
     } catch {
