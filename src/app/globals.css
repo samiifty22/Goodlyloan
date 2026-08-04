@@ -8,7 +8,15 @@
   --color-bg-app: #f8fafc;
   --color-fg-app: #0f172a;
   --color-border-app: #e2e8f0;
-  
+
+  /* Warm gold accent — used sparingly for ornamental/devotional moments */
+  --color-gold: #c9a15a;
+  --color-gold-soft: #e8d5a8;
+  --color-emerald-deep: #064e3b;
+
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-arabic: var(--font-amiri), serif;
+
   --shadow-premium: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 10px -1px rgba(15, 23, 42, 0.03);
   --shadow-premium-hover: 0 20px 25px -5px rgba(22, 163, 74, 0.06), 0 8px 10px -6px rgba(22, 163, 74, 0.04);
 }
@@ -64,16 +72,50 @@ body {
   background: #94a3b8;
 }
 
-/* Micro-animations and hover transitions */
-.hover-lift {
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
-}
-
-.hover-lift:hover {
-  transform: translateY(-4px);
-}
-
 /* Animate progress bars smoothly */
 .progress-bar-fill {
   transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Note: these live in @layer utilities so they compose correctly with Tailwind's own
+   utilities (e.g. bg-gradient-*) instead of unconditionally overriding them — unlayered
+   CSS always wins over layered CSS regardless of source order or specificity. Because
+   background-image can't be "merged" across two classes on the same element, apply the
+   pattern classes to a separate absolutely-positioned overlay element, not the same
+   element that carries a gradient. */
+@layer utilities {
+  /* Micro-animation: lift on hover, pairs with Tailwind's transition-shadow utilities */
+  .hover-lift {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+  }
+
+  /* Subtle Islamic geometric motif (interlocking squares / eight-point star lattice) */
+  .pattern-geometric-gold {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill='none' stroke='%23c9a15a' stroke-opacity='0.35' stroke-width='1'%3E%3Cpolygon points='10,10 30,10 30,30 10,30'/%3E%3Cpolygon points='20,5.86 34.14,20 20,34.14 5.86,20'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 40px 40px;
+  }
+
+  .pattern-geometric-emerald {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill='none' stroke='%2316a34a' stroke-opacity='0.08' stroke-width='1'%3E%3Cpolygon points='10,10 30,10 30,30 10,30'/%3E%3Cpolygon points='20,5.86 34.14,20 20,34.14 5.86,20'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 40px 40px;
+  }
+
+  /* Small ornamental divider used to bracket the Quranic verse */
+  .ornament-divider {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .ornament-divider::before,
+  .ornament-divider::after {
+    content: "";
+    height: 1px;
+    width: 2.5rem;
+    background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+  }
 }

@@ -1,27 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession, signOut } from "@/lib/auth-client";
-import { Menu, X, Heart, LogOut, User, LayoutDashboard, Settings, Coins, FileCheck } from "lucide-react";
+import { useSession } from "@/lib/auth-client";
+import { Heart, User, LayoutDashboard, Settings, Coins, FileCheck } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { data: session, isPending } = useSession();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { data: session } = useSession();
 
   const isLoggedIn = !!session;
   const isAdmin = (session?.user as any)?.role === "ADMIN";
 
-  const handleSignOut = async () => {
-    await signOut();
-    window.location.href = "/login";
-  };
-
-  const navLinks = [
-    { name: "Home", href: "/" },
-    { name: "Campaigns", href: "/campaigns" },
+  // Home/Campaigns tabs temporarily disabled — landing page only, logo already links home
+  const navLinks: { name: string; href: string }[] = [
+    // { name: "Home", href: "/" },
+    // { name: "Campaigns", href: "/campaigns" },
   ];
 
   const adminLinks = [
@@ -41,14 +35,14 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 justify-between items-center">
+        <div className="flex h-16 items-center justify-center md:justify-between">
           {/* Logo */}
           <div className="flex flex-shrink-0 items-center">
-            <Link href="/" className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center space-x-2 transition-opacity duration-200 hover:opacity-80">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-600 text-white shadow-md shadow-green-600/20">
                 <Heart className="h-5 w-5 fill-current" />
               </div>
-              <span className="text-xl font-bold tracking-tight text-slate-900">
+              <span className="font-display text-xl font-semibold tracking-tight text-slate-900">
                 Goodly<span className="text-green-600">Loan</span>
               </span>
             </Link>
@@ -100,7 +94,7 @@ export default function Navbar() {
               ))}
           </div>
 
-          {/* Right menu (Auth control) */}
+          {/* Right menu (Auth control) — temporarily disabled while sign-in is paused
           <div className="hidden md:flex md:items-center md:space-x-4">
             {isPending ? (
               <div className="h-8 w-24 animate-pulse rounded-md bg-slate-100" />
@@ -132,115 +126,9 @@ export default function Navbar() {
               </Link>
             )}
           </div>
-
-          {/* Mobile menu button */}
-          <div className="flex items-center md:hidden">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="inline-flex items-center justify-center rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus:outline-none"
-            >
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
+          */}
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-b border-slate-200 bg-white px-2 pt-2 pb-4 space-y-1">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className={`block rounded-md px-3 py-2 text-base font-medium transition-colors ${isActive(link.href)
-                ? "bg-green-50 text-green-700"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                }`}
-            >
-              {link.name}
-            </Link>
-          ))}
-
-          {isLoggedIn && !isAdmin && (
-            <>
-              <div className="border-t border-slate-100 my-2 pt-2 px-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Donor Account</p>
-              </div>
-              {donorLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center space-x-2 rounded-md px-3 py-2 text-base font-medium transition-colors ${isActive(link.href)
-                    ? "bg-green-50 text-green-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                    }`}
-                >
-                  <link.icon className="h-4 w-4" />
-                  <span>{link.name}</span>
-                </Link>
-              ))}
-            </>
-          )}
-
-          {isLoggedIn && isAdmin && (
-            <>
-              <div className="border-t border-slate-100 my-2 pt-2 px-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Administrator</p>
-              </div>
-              {adminLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center space-x-2 rounded-md px-3 py-2 text-base font-medium transition-colors ${isActive(link.href)
-                    ? "bg-green-50 text-green-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                    }`}
-                >
-                  <link.icon className="h-4 w-4" />
-                  <span>{link.name}</span>
-                </Link>
-              ))}
-            </>
-          )}
-
-          <div className="border-t border-slate-100 mt-4 pt-4 px-3 flex justify-between items-center">
-            {isLoggedIn ? (
-              <div className="w-full space-y-3">
-                <div className="flex items-center space-x-2">
-                  <div className="h-9 w-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 font-semibold text-sm">
-                    {session.user.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-800 leading-tight text-sm">{session.user.name}</p>
-                    <p className="text-xs text-slate-400">{session.user.email}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    handleSignOut();
-                  }}
-                  className="flex w-full items-center justify-center space-x-1.5 rounded-md border border-slate-200 bg-white py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Sign Out</span>
-                </button>
-              </div>
-            ) : (
-              <Link
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex w-full items-center justify-center rounded-md bg-green-600 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-700"
-              >
-                Sign In
-              </Link>
-            )}
-          </div>
-        </div>
-      )}
     </nav>
   );
 }
