@@ -25,7 +25,7 @@ const amiri = Amiri({
 });
 
 export const metadata: Metadata = {
-  title: "Goodly Loan — Interest-Free Qard Hasan Crowdfunding",
+  title: "GoodlyLoan",
   description:
     "Empowering communities through Shariah-compliant Qard Hasan (interest-free) lending. Fund verified loan campaigns, track repayments, and support ethical mutual aid.",
 };
