@@ -6,6 +6,8 @@ export const auth = betterAuth({
   database: prismaAdapter(db, {
     provider: "postgresql",
   }),
+  // Addresses the site is served from, besides BETTER_AUTH_URL
+  trustedOrigins: ["https://goodlyloan.com", "https://www.goodlyloan.com", "https://goodlyloan-3.vercel.app"],
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
