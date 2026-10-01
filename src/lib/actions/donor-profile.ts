@@ -1,9 +1,11 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { requireAdmin, requireUser } from "@/lib/admin-guard";
 import { revalidatePath } from "next/cache";
 
 export async function getDonorProfile(userId: string) {
+    await requireUser(userId);
     try {
         const user = await db.user.findUnique({
             where: { id: userId },
@@ -45,6 +47,7 @@ export async function upsertDonorPaymentInfo(
         routingNumber?: string;
     }
 ) {
+    await requireUser(userId);
     try {
         await db.donorPaymentInfo.upsert({
             where: { userId },
@@ -80,6 +83,7 @@ export async function upsertDonorPaymentInfo(
 }
 
 export async function updateDonorName(userId: string, name: string) {
+    await requireUser(userId);
     try {
         if (!name.trim()) return { success: false, error: "Name cannot be empty." };
 
@@ -97,6 +101,7 @@ export async function updateDonorName(userId: string, name: string) {
 }
 
 export async function getDonorPaymentInfoForAdmin(donorId: string) {
+    await requireAdmin();
     try {
         return await db.donorPaymentInfo.findUnique({
             where: { userId: donorId },

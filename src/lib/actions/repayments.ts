@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { requireAdmin } from "@/lib/admin-guard";
 import { revalidatePath } from "next/cache";
 
 export async function disburseLoan(
@@ -9,6 +10,7 @@ export async function disburseLoan(
   adminId?: string,
   adminEmail?: string
 ) {
+  await requireAdmin();
   try {
     const campaign = await db.campaign.findUnique({
       where: { id: campaignId },
@@ -82,6 +84,7 @@ export async function recordRepayment(
   adminId?: string,
   adminEmail?: string
 ) {
+  await requireAdmin();
   try {
     const campaign = await db.campaign.findUnique({
       where: { id: campaignId },
@@ -193,6 +196,7 @@ export async function addCampaignUpdate(
   adminId?: string,
   adminEmail?: string
 ) {
+  await requireAdmin();
   try {
     const update = await db.campaignUpdate.create({
       data: {

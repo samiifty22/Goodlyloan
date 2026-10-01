@@ -3,9 +3,11 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getSettings } from "@/lib/actions/settings";
+import { getStorageUsage } from "@/lib/actions/system";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdminSettingsForm from "@/components/AdminSettingsForm";
+import AdminDataProtection from "@/components/AdminDataProtection";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +20,7 @@ export default async function AdminSettingsPage() {
     redirect("/login");
   }
 
-  const settings = await getSettings();
+  const [settings, usage] = await Promise.all([getSettings(), getStorageUsage()]);
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
@@ -41,6 +43,15 @@ export default async function AdminSettingsPage() {
             adminId={session.user.id}
             adminEmail={session.user.email}
           />
+
+          <div className="border-b border-slate-200 pb-4 pt-4">
+            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Data Protection</h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Keep a copy of your records and keep the admin account secure.
+            </p>
+          </div>
+
+          <AdminDataProtection usage={usage} />
 
         </div>
       </main>

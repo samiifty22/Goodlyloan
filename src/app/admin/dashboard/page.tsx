@@ -50,6 +50,27 @@ export default async function AdminDashboardPage() {
             
             <div className="flex flex-wrap gap-2">
               <Link
+                href="/admin/funds"
+                className="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold px-4.5 py-2 rounded-lg text-xs transition shadow-sm flex items-center gap-1.5"
+              >
+                <Coins className="h-4 w-4" />
+                <span>Fund Balances</span>
+              </Link>
+              <Link
+                href="/admin/donors"
+                className="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold px-4.5 py-2 rounded-lg text-xs transition shadow-sm flex items-center gap-1.5"
+              >
+                <HeartHandshake className="h-4 w-4" />
+                <span>Donors</span>
+              </Link>
+              <Link
+                href="/admin/recipients"
+                className="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold px-4.5 py-2 rounded-lg text-xs transition shadow-sm flex items-center gap-1.5"
+              >
+                <Users className="h-4 w-4" />
+                <span>Recipients</span>
+              </Link>
+              <Link
                 href="/admin/campaigns/new"
                 className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4.5 py-2 rounded-lg text-xs transition shadow-sm"
               >

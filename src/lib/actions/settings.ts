@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { requireAdmin, requireUser } from "@/lib/admin-guard";
 import { revalidatePath } from "next/cache";
 
 export async function getSettings() {
@@ -48,6 +49,7 @@ interface UpdateSettingsInput {
 }
 
 export async function updateSettings(data: UpdateSettingsInput) {
+  await requireAdmin();
   try {
     const settings = await db.settings.upsert({
       where: { id: "singleton" },
@@ -94,6 +96,7 @@ export async function updateSettings(data: UpdateSettingsInput) {
 }
 
 export async function getAuditLogs() {
+  await requireAdmin();
   try {
     return await db.auditLog.findMany({
       orderBy: { createdAt: "desc" },
@@ -166,6 +169,7 @@ export async function getAdminDashboardStats() {
 }
 
 export async function getDonorDashboardStats(userId: string) {
+  await requireUser(userId);
   try {
     const [
       totalContributionsResult,
@@ -221,6 +225,7 @@ export async function getDonorDashboardStats(userId: string) {
 }
 
 export async function getDonorNotifications(userId: string) {
+  await requireUser(userId);
   try {
     return await db.notification.findMany({
       where: { userId },
@@ -235,6 +240,10 @@ export async function getDonorNotifications(userId: string) {
 
 export async function markNotificationRead(id: string) {
   try {
+    const notification = await db.notification.findUnique({ where: { id }, select: { userId: true } });
+    if (!notification) return { success: false };
+    await requireUser(notification.userId);
+
     await db.notification.update({
       where: { id },
       data: { read: true },
@@ -246,6 +255,7 @@ export async function markNotificationRead(id: string) {
 }
 
 export async function updateDonorProfile(userId: string, name: string) {
+  await requireUser(userId);
   try {
     const user = await db.user.update({
       where: { id: userId },

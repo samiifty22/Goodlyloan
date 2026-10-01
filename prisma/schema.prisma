@@ -235,6 +235,115 @@ model Settings {
   updatedAt        DateTime @updatedAt
 }
 
+// ── Admin-side fund ledger (offline records, no login accounts) ──
+// Money in:  Donor → Donation (returned to the donor via DonorReturn)
+// Money out: Recipient → Disbursement (repaid via Installment)
+// Each entry belongs to one fund, set by its type, and funds are never mixed:
+//   "QARD_HASANA" loan capital · "SADAQAH" gifts · "OPERATIONAL" running costs
+
+model Donor {
+  id           String     @id @default(uuid())
+  donorCode    String     @unique // Generated ID shown to admins, e.g. "DN-0001"
+  fullName     String
+  phoneNumber  String
+  email        String?
+  address      String?
+  country      String?
+  organization String?
+  notes        String?
+  status       String     @default("ACTIVE") // "ACTIVE", "INACTIVE"
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  donations    Donation[]
+}
+
+model Donation {
+  id            String        @id @default(uuid())
+  receiptNumber String        @unique // e.g. "DR-00001"
+  type          String // "QARD_HASANA" (lent to the fund, can be returned), "SADAQAH", "OPERATIONAL"
+  amount        Float
+  receivedDate  DateTime
+  paymentMethod String? // "cash", "bkash", "nagad", "rocket", "bank_transfer"
+  reference     String? // transaction ID / cheque number
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  donorId       String
+  donor         Donor         @relation(fields: [donorId], references: [id], onDelete: Cascade)
+  returns       DonorReturn[]
+
+  @@index([donorId])
+}
+
+// Qard Hasana principal handed back to the donor
+model DonorReturn {
+  id            String   @id @default(uuid())
+  amount        Float
+  returnedDate  DateTime
+  paymentMethod String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  donationId    String
+  donation      Donation @relation(fields: [donationId], references: [id], onDelete: Cascade)
+
+  @@index([donationId])
+}
+
+model Recipient {
+  id             String         @id @default(uuid())
+  recipientCode  String         @unique // Generated ID shown to admins, e.g. "GL-0001"
+  fullName       String
+  fatherName     String?
+  phoneNumber    String
+  nidNumber      String?
+  dateOfBirth    DateTime?
+  address        String
+  occupation     String?
+  monthlyIncome  Float?
+  familyMembers  Int?
+  guarantorName  String?
+  guarantorPhone String?
+  notes          String?
+  status         String         @default("ACTIVE") // "ACTIVE", "INACTIVE"
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  disbursements  Disbursement[]
+}
+
+model Disbursement {
+  id            String        @id @default(uuid())
+  type          String // "QARD_HASANA" (repayable) or "SADAQAH" (gift, no repayment)
+  amount        Float
+  disbursedDate DateTime
+  purpose       String?
+  paymentMethod String? // "cash", "bkash", "nagad", "rocket", "bank_transfer"
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  recipientId   String
+  recipient     Recipient     @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  installments  Installment[]
+
+  @@index([recipientId])
+}
+
+model Installment {
+  id                String       @id @default(uuid())
+  installmentNumber Int
+  dueDate           DateTime
+  amount            Float
+  paidAmount        Float        @default(0)
+  paidDate          DateTime?
+  notes             String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  disbursementId    String
+  disbursement      Disbursement @relation(fields: [disbursementId], references: [id], onDelete: Cascade)
+
+  @@index([disbursementId])
+  @@index([dueDate])
+}
+
 model Receipt {
   id             String       @id @default(uuid())
   receiptNumber  String       @unique

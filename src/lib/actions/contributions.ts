@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { requireAdmin, requireUser } from "@/lib/admin-guard";
 import { revalidatePath } from "next/cache";
 
 // Helper to convert Prisma Decimals to standard JS Numbers
@@ -36,6 +37,7 @@ interface SubmitContributionInput {
 }
 
 export async function submitContribution(data: SubmitContributionInput) {
+  await requireUser(data.donorId);
   try {
     // 1. Create the Contribution in PENDING state
     const contribution = await db.contribution.create({
@@ -78,6 +80,7 @@ export async function submitContribution(data: SubmitContributionInput) {
 }
 
 export async function getDonorContributions(donorId: string) {
+  await requireUser(donorId);
   try {
     const contributions = await db.contribution.findMany({
       where: { donorId },
@@ -99,6 +102,7 @@ export async function getDonorContributions(donorId: string) {
 }
 
 export async function getPendingContributions() {
+  await requireAdmin();
   try {
     const contributions = await db.contribution.findMany({
       where: { status: "PENDING" },
@@ -126,6 +130,7 @@ export async function approveContribution(
   adminId: string,
   adminEmail: string
 ) {
+  await requireAdmin();
   try {
     // 1. Fetch contribution
     const contribution = await db.contribution.findUnique({
@@ -223,6 +228,7 @@ export async function rejectContribution(
   adminId: string,
   adminEmail: string
 ) {
+  await requireAdmin();
   try {
     const contribution = await db.contribution.findUnique({
       where: { id: contributionId },

@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { requireAdmin } from "@/lib/admin-guard";
 import { revalidatePath } from "next/cache";
 
 // Helper to convert Prisma Decimal to Number for clean serialization
@@ -45,6 +46,7 @@ export async function getCategories() {
 }
 
 export async function createCategory(name: string) {
+  await requireAdmin();
   try {
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     const category = await db.category.create({
@@ -160,6 +162,7 @@ export async function getCampaignBySlug(slug: string) {
 }
 
 export async function getAdminCampaigns() {
+  await requireAdmin();
   try {
     const campaigns = await db.campaign.findMany({
       include: {
@@ -199,6 +202,7 @@ interface CreateCampaignInput {
 }
 
 export async function createCampaign(data: CreateCampaignInput) {
+  await requireAdmin();
   try {
     // Generate unique slug
     let slug = data.title
@@ -296,6 +300,7 @@ interface EditCampaignInput {
 }
 
 export async function editCampaign(data: EditCampaignInput) {
+  await requireAdmin();
   try {
     // 1. Update Borrower
     await db.borrower.update({
@@ -351,6 +356,7 @@ export async function editCampaign(data: EditCampaignInput) {
 }
 
 export async function updateCampaignStatus(id: string, status: string, adminId?: string, adminEmail?: string) {
+  await requireAdmin();
   try {
     const campaign = await db.campaign.update({
       where: { id },
@@ -382,6 +388,7 @@ export async function setCampaignStatus(
   adminId?: string,
   adminEmail?: string
 ) {
+  await requireAdmin();
   try {
     const campaign = await db.campaign.update({
       where: { id },

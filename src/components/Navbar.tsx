@@ -1,13 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useSession } from "@/lib/auth-client";
-import { Heart, User, LayoutDashboard, Settings, Coins, FileCheck } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { signOut, useSession } from "@/lib/auth-client";
+import { Heart, User, LayoutDashboard, Settings, Coins, FileCheck, LogOut } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { data: session } = useSession();
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/login");
+    router.refresh();
+  };
 
   const isLoggedIn = !!session;
   const isAdmin = (session?.user as any)?.role === "ADMIN";
@@ -19,9 +26,13 @@ export default function Navbar() {
   ];
 
   const adminLinks = [
-    { name: "Admin Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-    { name: "Manage Campaigns", href: "/admin/campaigns", icon: Coins },
+    { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+    { name: "Campaigns", href: "/admin/campaigns", icon: Coins },
     { name: "Contributions", href: "/admin/contributions", icon: FileCheck },
+    { name: "Donors", href: "/admin/donors", icon: User },
+    { name: "Recipients", href: "/admin/recipients", icon: User },
+    { name: "Funds", href: "/admin/funds", icon: Coins },
+    { name: "Calendar", href: "/admin/schedule", icon: LayoutDashboard },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
 
@@ -35,7 +46,7 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-center md:justify-between">
+        <div className={`flex h-16 items-center ${isLoggedIn ? "justify-between" : "justify-center md:justify-between"}`}>
           {/* Logo */}
           <div className="flex flex-shrink-0 items-center">
             <Link href="/" className="flex items-center space-x-2 transition-opacity duration-200 hover:opacity-80">
@@ -49,12 +60,12 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex md:space-x-8">
+          <div className="hidden md:flex md:space-x-4 xl:space-x-8 min-w-0 mx-4 overflow-x-auto">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
-                className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors duration-200 ${isActive(link.href)
+                className={`inline-flex items-center whitespace-nowrap px-1 pt-1 text-sm font-medium transition-colors duration-200 ${isActive(link.href)
                   ? "border-b-2 border-green-600 text-slate-900"
                   : "text-slate-500 hover:border-slate-300 hover:text-slate-700"
                   }`}
@@ -69,7 +80,7 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors duration-200 ${isActive(link.href)
+                  className={`inline-flex items-center whitespace-nowrap px-1 pt-1 text-sm font-medium transition-colors duration-200 ${isActive(link.href)
                     ? "border-b-2 border-green-600 text-slate-900"
                     : "text-slate-500 hover:border-slate-300 hover:text-slate-700"
                     }`}
@@ -84,7 +95,7 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors duration-200 ${isActive(link.href)
+                  className={`inline-flex items-center whitespace-nowrap px-1 pt-1 text-sm font-medium transition-colors duration-200 ${isActive(link.href)
                     ? "border-b-2 border-green-600 text-slate-900"
                     : "text-slate-500 hover:border-slate-300 hover:text-slate-700"
                     }`}
@@ -93,6 +104,24 @@ export default function Navbar() {
                 </Link>
               ))}
           </div>
+
+          {/* Sign out — shown on every screen size so logged-in users can always leave */}
+          {isLoggedIn && (
+            <div className="flex shrink-0 items-center space-x-3">
+              <div className="hidden xl:block text-xs text-right whitespace-nowrap">
+                <p className="font-semibold text-slate-800 leading-tight">{session.user.name}</p>
+                <p className="text-slate-400 capitalize">{((session.user as any).role)?.toLowerCase()}</p>
+              </div>
+              <button
+                onClick={handleSignOut}
+                title="Sign Out"
+                className="inline-flex items-center space-x-1 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 cursor-pointer"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                <span className="md:hidden xl:inline whitespace-nowrap">Sign Out</span>
+              </button>
+            </div>
+          )}
 
           {/* Right menu (Auth control) — temporarily disabled while sign-in is paused
           <div className="hidden md:flex md:items-center md:space-x-4">

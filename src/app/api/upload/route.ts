@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { uploadFile } from "@/lib/storage";
 
 export async function POST(request: Request) {
+  // Only signed-in users (donors attaching payment slips, admins adding images) may upload
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (!session) {
+    return NextResponse.json({ error: "Please sign in to upload files." }, { status: 401 });
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File;

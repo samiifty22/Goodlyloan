@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { requireAdmin, requireUser } from "@/lib/admin-guard";
 import { revalidatePath } from "next/cache";
 
 // ── Release payment to a specific donor manually ────────────────────────────
@@ -19,6 +20,7 @@ export async function releaseDonorRepayment({
     notes?: string;
     adminId: string;
 }) {
+    await requireAdmin();
     if (!amount || amount <= 0) {
         return { success: false, error: "Amount must be greater than 0." };
     }
@@ -112,6 +114,7 @@ export async function releaseDonorRepayment({
 
 // ── Data for the donor release page ────────────────────────────────────────
 export async function getDonorRepaymentPageData(campaignId: string, donorId: string) {
+    await requireAdmin();
     const contribution = await db.contribution.findFirst({
         where: { campaignId, donorId, status: "APPROVED" },
         include: {
@@ -143,6 +146,7 @@ export async function getDonorRepaymentPageData(campaignId: string, donorId: str
 
 // ── Donor list for campaign (DonorListTab) ──────────────────────────────────
 export async function getCampaignDonors(campaignId: string) {
+    await requireAdmin();
     const contributions = await db.contribution.findMany({
         where: { campaignId, status: "APPROVED" },
         include: {
@@ -186,6 +190,7 @@ export async function getCampaignDonors(campaignId: string) {
     return Array.from(donorMap.values());
 }
 export async function getDonorRepaymentHistory(donorId: string) {
+    await requireUser(donorId);
     try {
         const repayments = await db.repayment.findMany({
             where: {
